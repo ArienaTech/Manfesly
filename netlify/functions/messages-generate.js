@@ -1,5 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
-const OpenAI = require('openai').default;
+const OpenAI = require('openai');
 
 exports.handler = async (event) => {
   const headers = {
