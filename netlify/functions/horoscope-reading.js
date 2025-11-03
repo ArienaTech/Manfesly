@@ -157,8 +157,8 @@ Make them think "how did they know?"`;
 
     // Save message to database
     const inputText = question 
-      ? `${period.charAt(0).toUpperCase() + period.slice(1)} Horoscope Reading2 - Question: ${question}`
-      : `${period.charAt(0).toUpperCase() + period.slice(1)} Horoscope Reading2${date ? ` for ${date}` : ''}`;
+      ? `${period.charAt(0).toUpperCase() + period.slice(1)} Horoscope Reading - Question: ${question}`
+      : `${period.charAt(0).toUpperCase() + period.slice(1)} Horoscope Reading${date ? ` for ${date}` : ''}`;
 
     await supabase.from('messages').insert({
       user_id: userId,
@@ -184,7 +184,7 @@ Make them think "how did they know?"`;
       }),
     };
   } catch (error) {
-    console.error('Horoscope Reading2 error:', error);
+    console.error('Horoscope Reading error:', error);
     return { 
       statusCode: 500, 
       headers, 

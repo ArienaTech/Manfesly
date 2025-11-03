@@ -50,6 +50,7 @@ export default function Home() {
   const [soulGems, setSoulGems] = useState<number>(1);
   const [isPremium, setIsPremium] = useState<boolean>(false);
   const [streak, setStreak] = useState(0);
+  const [sessionInitializing, setSessionInitializing] = useState(true);
   const [dailyHoroscope, setDailyHoroscope] = useState<string | null>(null);
   const [loadingHoroscope, setLoadingHoroscope] = useState(false);
   const [showHoroscopeDialog, setShowHoroscopeDialog] = useState(false);
@@ -74,6 +75,7 @@ export default function Home() {
 
   useEffect(() => {
     const initSession = async () => {
+      setSessionInitializing(true);
       const storedUserId = localStorage.getItem("manifestly-user-id");
       
       // Check if user is authenticated
@@ -142,6 +144,11 @@ export default function Home() {
         }
       } catch (error) {
         console.error("Session init error:", error);
+        toast({
+          title: "Connection Error",
+          description: "Failed to initialize session. Please refresh the page.",
+          variant: "destructive",
+        });
       }
 
       const storedStreak = localStorage.getItem("manifestly-streak");
@@ -169,6 +176,7 @@ export default function Home() {
       }
 
       localStorage.setItem("manifestly-last-visit", today);
+      setSessionInitializing(false);
     };
 
     initSession();
@@ -224,10 +232,10 @@ export default function Home() {
   );
 
   const handleEmotionalSubmit = async (feeling: string) => {
-    if (!userId) {
+    if (!userId || sessionInitializing) {
       toast({
         title: t("error"),
-        description: t("sessionNotInitialized"),
+        description: sessionInitializing ? "Please wait, initializing session..." : t("sessionNotInitialized"),
         variant: "destructive",
       });
       return;
@@ -579,7 +587,7 @@ export default function Home() {
               data-testid="button-gems"
             >
               <Gem className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold text-foreground">{isPremium ? "∞" : soulGems}</span>
+              <span className="text-sm font-semibold text-foreground">{isPremium ? "?" : soulGems}</span>
             </button>
             
             {/* Active Systems Badge */}
@@ -663,7 +671,7 @@ export default function Home() {
                 <div className="flex-1 space-y-3">
                   <div>
                     <h3 className="text-lg font-bold text-foreground mb-1">
-                      ✨ Unlock Ultra-Personalized Cosmic Readings
+                      ? Unlock Ultra-Personalized Cosmic Readings
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       Get messages powered by <strong>6 astrology systems</strong> (Western, Vedic, Chinese Bazi, Thai Lanna, Japanese, Korean Saju) + your spiritual path
@@ -697,7 +705,7 @@ export default function Home() {
                   
                   {activeSystems > 0 && (
                     <p className="text-xs text-green-600 dark:text-green-400 font-semibold">
-                      ✓ {activeSystems} {activeSystems === 1 ? 'system' : 'systems'} already active! {hasReligion && `✓ ${userProfile.religion} wisdom enabled!`}
+                      ? {activeSystems} {activeSystems === 1 ? 'system' : 'systems'} already active! {hasReligion && `? ${userProfile.religion} wisdom enabled!`}
                     </p>
                   )}
                 </div>
@@ -717,7 +725,7 @@ export default function Home() {
               </p>
             </div>
 
-            <EmotionalInput onSubmit={handleEmotionalSubmit} isLoading={isLoading} />
+            <EmotionalInput onSubmit={handleEmotionalSubmit} isLoading={isLoading || sessionInitializing} />
 
             <div className="flex items-center justify-center gap-4">
               <div className="h-px flex-1 bg-border" />
@@ -730,32 +738,33 @@ export default function Home() {
                 onClick={() => setMode("manifestation")}
                 variant="secondary"
                 className="h-12 px-8"
+                disabled={sessionInitializing}
                 data-testid="button-manifestation-mode"
               >
                 <Wand2 className="w-5 h-5 mr-2" />
-                {t("tryManifestationMode")}
+                {sessionInitializing ? "Initializing..." : t("tryManifestationMode")}
               </Button>
 
               <Button
                 onClick={handleHoroscopeDialogOpen}
                 variant="outline"
                 className="h-12 px-8"
-                disabled={loadingHoroscope}
+                disabled={loadingHoroscope || sessionInitializing}
                 data-testid="button-horoscope-reading"
               >
                 <Stars className="w-5 h-5 mr-2" />
-                {loadingHoroscope ? t("readingStars") : t("horoscopeReading")}
+                {sessionInitializing ? "Initializing..." : loadingHoroscope ? t("readingStars") : t("horoscopeReading")}
               </Button>
 
               <Button
                 onClick={handleHoroscopeDialogOpen2}
                 variant="outline"
                 className="h-12 px-8"
-                disabled={loadingHoroscope2}
+                disabled={loadingHoroscope2 || sessionInitializing}
                 data-testid="button-horoscope-reading2"
               >
                 <Stars className="w-5 h-5 mr-2" />
-                {loadingHoroscope2 ? t("readingStars") : t("horoscopeReading2")}
+                {sessionInitializing ? "Initializing..." : loadingHoroscope2 ? t("readingStars") : t("horoscopeReading2")}
               </Button>
 
             </div>
@@ -1027,7 +1036,7 @@ export default function Home() {
 
       <footer className="border-t mt-16">
         <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
-          <p>✨ {t("footerText")}</p>
+          <p>? {t("footerText")}</p>
         </div>
       </footer>
 
@@ -1117,7 +1126,7 @@ export default function Home() {
                   <Stars className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
                   <div>
                     <h4 className="font-semibold text-sm">Korean Saju</h4>
-                    <p className="text-xs text-muted-foreground">사주 Four Pillars</p>
+                    <p className="text-xs text-muted-foreground">?? Four Pillars</p>
                   </div>
                 </div>
               </div>
@@ -1138,7 +1147,7 @@ export default function Home() {
             
             <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-center">
               <p className="text-sm font-semibold text-foreground mb-2">
-                🎁 You get <strong>1 FREE reading</strong> to try it out!
+                ?? You get <strong>1 FREE reading</strong> to try it out!
               </p>
               <p className="text-xs text-muted-foreground">
                 Set up your cosmic profile to unlock ultra-personalized readings that combine all these systems.

@@ -24,6 +24,16 @@
   status = 200
 
 [[redirects]]
+  from = "/api/manifestation/generate"
+  to = "/.netlify/functions/manifestation-generate"
+  status = 200
+
+[[redirects]]
+  from = "/api/horoscope/reading"
+  to = "/.netlify/functions/horoscope-reading"
+  status = 200
+
+[[redirects]]
   from = "/api/horoscope/reading2"
   to = "/.netlify/functions/horoscope-reading2"
   status = 200
