@@ -1,0 +1,100 @@
+================================================================================
+🔴 MANIFESTLY IS NOT LOADING - HERE'S WHY AND HOW TO FIX IT
+================================================================================
+
+PROBLEM IDENTIFIED:
+-------------------
+The Supabase database tables (users, sessions) do not exist.
+When the app tries to load, it fails during authentication initialization.
+
+Error: "Could not find the table 'public.users' in the schema cache PGRST205"
+
+WHAT'S WORKING:
+---------------
+✅ Dependencies installed (node_modules)
+✅ Environment configured (.env with Supabase + OpenAI keys)
+✅ Dev server running on http://localhost:5000
+✅ Code compiles without errors
+✅ Supabase connection works
+
+WHAT'S NOT WORKING:
+-------------------
+❌ Database tables not created
+❌ App hangs during authentication check
+❌ Blank screen or infinite loading
+
+FIX (5 MINUTES):
+----------------
+1. Open this link in your browser:
+   https://supabase.com/dashboard/project/uoxcavoznrhgltlsojfu/sql
+
+2. You'll see "SQL Editor" - click "New Query"
+
+3. Copy EVERYTHING from the file: /workspace/supabase-schema.sql
+   Or copy this:
+
+   ---START---
+   -- Create users table
+   CREATE TABLE IF NOT EXISTS users (
+     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+     email TEXT NOT NULL UNIQUE,
+     name TEXT,
+     intention TEXT,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+   );
+
+   -- Create sessions table
+   CREATE TABLE IF NOT EXISTS sessions (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+     emotion_score INTEGER NOT NULL CHECK (emotion_score >= 1 AND emotion_score <= 10),
+     prompt TEXT NOT NULL,
+     reflection TEXT,
+     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+   );
+
+   -- Create indexes
+   CREATE INDEX IF NOT EXISTS sessions_user_id_idx ON sessions(user_id);
+   CREATE INDEX IF NOT EXISTS sessions_created_at_idx ON sessions(created_at DESC);
+
+   -- Enable RLS
+   ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+   ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
+
+   -- Users policies
+   CREATE POLICY "Users can view own profile" ON users FOR SELECT USING (auth.uid() = id);
+   CREATE POLICY "Users can update own profile" ON users FOR UPDATE USING (auth.uid() = id);
+   CREATE POLICY "Users can insert own profile" ON users FOR INSERT WITH CHECK (auth.uid() = id);
+
+   -- Sessions policies
+   CREATE POLICY "Users can view own sessions" ON sessions FOR SELECT USING (auth.uid() = user_id);
+   CREATE POLICY "Users can insert own sessions" ON sessions FOR INSERT WITH CHECK (auth.uid() = user_id);
+   CREATE POLICY "Users can update own sessions" ON sessions FOR UPDATE USING (auth.uid() = user_id);
+   CREATE POLICY "Users can delete own sessions" ON sessions FOR DELETE USING (auth.uid() = user_id);
+   ---END---
+
+4. Paste into the SQL editor and click "RUN" (bottom right button)
+
+5. Verify tables created:
+   - Click "Table Editor" in left sidebar
+   - You should see "users" and "sessions" tables
+
+6. Refresh your browser at http://localhost:5000
+
+DONE! The app will now load completely.
+
+VERIFICATION:
+-------------
+After creating tables, you should see:
+- Landing page with "Rewire your mind" heading
+- "Start Free Session" and "Sign In" buttons
+- No errors in browser console (F12)
+
+STILL NOT WORKING?
+------------------
+If you still see issues after creating tables:
+1. Open browser console (F12 → Console tab)
+2. Share any error messages you see
+3. Try hard refresh: Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac)
+
+================================================================================
