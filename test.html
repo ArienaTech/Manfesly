@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Test</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
+        .test { background: white; padding: 20px; margin: 10px 0; border-radius: 5px; }
+        .pass { border-left: 5px solid #22c55e; }
+        .fail { border-left: 5px solid #ef4444; }
+    </style>
+</head>
+<body>
+    <h1>Browser Test Page</h1>
+    <div id="results"></div>
+    <div class="test">
+        <h3>Manual Check:</h3>
+        <p>If you can see this page, the server is accessible.</p>
+        <p><strong>Current URL:</strong> <span id="url"></span></p>
+        <p><strong>User Agent:</strong> <span id="ua"></span></p>
+    </div>
+    
+    <script>
+        document.getElementById('url').textContent = window.location.href;
+        document.getElementById('ua').textContent = navigator.userAgent;
+        
+        const results = document.getElementById('results');
+        
+        function addTest(name, passed, details) {
+            const div = document.createElement('div');
+            div.className = 'test ' + (passed ? 'pass' : 'fail');
+            div.innerHTML = `<h3>${passed ? '✅' : '❌'} ${name}</h3><p>${details}</p>`;
+            results.appendChild(div);
+        }
+        
+        // Test 1: Basic JavaScript
+        addTest('JavaScript Execution', true, 'JavaScript is running');
+        
+        // Test 2: Fetch API
+        fetch('/')
+            .then(r => addTest('Fetch API', true, 'Fetch works, status: ' + r.status))
+            .catch(e => addTest('Fetch API', false, 'Error: ' + e.message));
+        
+        // Test 3: ES6 Support
+        try {
+            const test = () => 'ES6';
+            addTest('ES6 Arrow Functions', true, 'Arrow functions supported');
+        } catch(e) {
+            addTest('ES6 Arrow Functions', false, 'Not supported: ' + e.message);
+        }
+        
+        // Test 4: Modules
+        addTest('Module Support', 'noModule' in document.createElement('script'), 
+                'Modules: ' + ('noModule' in document.createElement('script') ? 'Supported' : 'Not supported'));
+        
+        // Test 5: localStorage
+        try {
+            localStorage.setItem('test', '1');
+            localStorage.removeItem('test');
+            addTest('localStorage', true, 'localStorage available');
+        } catch(e) {
+            addTest('localStorage', false, 'Error: ' + e.message);
+        }
+        
+        // Test 6: Try loading main app
+        setTimeout(() => {
+            const link = document.createElement('a');
+            link.href = '/';
+            link.textContent = 'Click here to try loading Manifestly';
+            link.style.cssText = 'display:block; margin:20px 0; padding:15px; background:#22c55e; color:white; text-decoration:none; border-radius:5px; text-align:center; font-size:18px;';
+            results.appendChild(link);
+        }, 1000);
+    </script>
+</body>
+</html>
