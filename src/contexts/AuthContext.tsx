@@ -22,19 +22,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('🔐 AuthProvider: Initializing...');
+    
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
-      } else {
+    supabase.auth.getSession()
+      .then(({ data: { session }, error }) => {
+        console.log('🔐 AuthProvider: Session check complete');
+        console.log('  - Session:', session ? 'EXISTS' : 'NULL');
+        console.log('  - Error:', error || 'NONE');
+        
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          console.log('  - Fetching user profile...');
+          fetchUserProfile(session.user.id);
+        } else {
+          console.log('  - No session, setting loading=false');
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error('❌ AuthProvider: Session check failed:', err);
         setLoading(false);
-      }
-    });
+      });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        console.log('🔐 AuthProvider: Auth state changed', _event);
         setUser(session?.user ?? null);
         if (session?.user) {
           await fetchUserProfile(session.user.id);
@@ -45,10 +59,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('🔐 AuthProvider: Cleaning up subscription');
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchUserProfile = async (userId: string) => {
+    console.log('👤 Fetching user profile for:', userId);
     try {
       const { data, error } = await supabase
         .from('users')
@@ -56,11 +74,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching user profile:', error);
+        throw error;
+      }
+      console.log('✅ User profile fetched successfully');
       setUserProfile(data);
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      console.error('❌ Error fetching user profile:', error);
     } finally {
+      console.log('✅ Setting loading=false');
       setLoading(false);
     }
   };
